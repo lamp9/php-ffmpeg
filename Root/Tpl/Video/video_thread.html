@@ -1,0 +1,262 @@
+<include file="Public:head_inner" />
+<!-- left -->
+<div class="xt-center">
+	<div id="xt-left">
+		<div class="xt-menu">
+			<ul>
+				<li><a href="__APP__"><em class="one"></em>视频入库</a></li>
+				<div class="xt-menu-jj"></div>
+				<li><a href="__APP__/Video"><em class="three"></em>视频</a></li>
+			</ul>
+		<div class="xt-menu-list"></div>
+			<ul><li><a href="/Public/js/index/ZeroClipboard/title_tools.php"><em class="two"></em>整理工具</a></li></ul>
+		</div>
+	</div>
+<!-- right -->
+	<div id="xt-right">
+    <div class="xt-bt">视频转码(请勿关闭此窗口)</div>
+    <div class="xt-input">
+		<span id=command></span>
+		<span id=total_time></span>
+		<img id="video_state" src=''/>
+		<a href="javascript:init();" class="green-int">开始</a>
+		<a href="javascript:video_state_set('L');" class="green-int">加载</a>
+		<a href="javascript:video_state_set('P');" class="green-int">暂停</a>
+	</div>
+    <div class="xt-table">
+	<form method="post" id="admin" action="__URL__-process">
+			<input type="hidden" name="process" id="process"/>
+        <table cellpadding="0" cellspacing="0" border="0" bgcolor="#dcdcdc" width="100%" style="font-size:14px">
+         <tr align="left">
+            <th>&nbsp;&nbsp;&nbsp;</th>
+			<th>ID</th>
+			<th>标题</th>
+			<th>路径</th>
+			<th>文件名</th>
+			<th>文件数</th>
+			<th>用时</th>
+			<th>状态</th>
+         </tr>
+         <tbody id="show_dir">
+			<foreach name='code' item='v'>
+			<tr>
+				<td>&nbsp;&nbsp;&nbsp;</td>
+				<td id='video_<{$v.id}>'><{$v.id}></td>
+				<td><{$v.title}></td>
+				<td><{$v.file_path}></td>
+				<td><{$v.file}></td>
+				<td id="video_file_count_<{$v.id}>"></td>
+				<td id="video_use_time_<{$v.id}>"></td>
+				<td><img id='video_state_<{$v.id}>' src="__PUBLIC__/images/waiting.png"/></td>
+            </tr>
+			</foreach>
+		</tbody>
+        </table>
+	</form>
+    </div>
+</div>
+</div>
+</body>
+</html>
+
+<script>
+window.document.onkeydown = disableRefresh;
+function disableRefresh(evt){
+	evt = (evt) ? evt : window.event;
+	if (evt.keyCode) {
+		if(evt.keyCode == 116) return false;
+	}
+}
+
+var start_time = '';
+
+var video_state = 'L';
+var video_state_id = $('#video_state');
+function video_state_set(state){
+	video_state = state;
+	if('L' == video_state){
+		video_state_id.attr('src', video_img_loading);
+		video_list_for_work();	
+	}
+	if('P' == video_state) video_state_id.attr('src', video_img_waiting);
+	if('O' == video_state) video_state_id.attr('src', video_img_finish);
+}
+function video_state_check(){
+	var now = new Date().getTime();
+	$('#total_time').html(show_time(now - start_time));
+	if(video_progress == video_count) video_state_set('O');
+}
+
+function show_time(time){
+	time = parseInt(time / 1000);
+	var second = time % 60;
+	if(second.toString().length == 1) second = '0' + second;
+	
+	var minute = time / 60;
+	minute = parseInt(minute % 60);
+	if(minute.toString().length == 1) minute = '0' + minute;
+	
+	var hour = parseInt(time / 3600);
+	if(hour.toString().length == 1) hour = '0' + hour;
+	
+	return hour + ":" + minute + ":" + second;
+}
+function time_second(time){
+	return parseInt(time / 1000);
+}
+
+var video_img_waiting = '__PUBLIC__/images/waiting.png';
+var video_img_loading = '__PUBLIC__/images/loading.gif';
+var video_img_finish = '__PUBLIC__/images/finish.png';
+var video_img_error = '__PUBLIC__/images/error.png';
+
+var video_thread_count = "<{:get_video_set()['video_thread_html']}>";
+//var video_thread_count = 2;
+video_thread_count = parseInt(video_thread_count);
+var video_thread = new Array();
+for(var i = 0; i < video_thread_count; i++){
+	video_thread[i] = new Array();
+	video_thread[i]['index'] = '';
+	video_thread[i]['arr'] = '';
+	video_thread[i]['state'] = '';
+}
+
+var video = <?php echo json_encode($code);?>;
+var video_count = video.length;
+var video_progress = 0;
+function video_list_for_work(){
+	if('P' == video_state) return;
+	for(var i = 0; i < video_thread.length; i++){
+		if(video_thread[i]['state'] == ''){
+			for(var j = 0; j < video_count; j++){
+				if(video[j].state == 'R') continue;
+				if(video[j].state == 'L') continue;
+				if(video[j].state == 'T') continue;
+				
+				video[j].state = 'R';
+				video_thread[i]['index'] = j;
+				video_thread[i]['arr'] = video[j];
+				video_thread[i]['state'] = 'L';
+
+				break;
+			}
+		}
+	}
+}
+function video_recode_start(arr){
+	try{
+		curr_request = $.ajax({
+			//url: '__URL__-video_recode',
+			url: '/recode.php',
+			type: 'POST',
+			data: {
+				id			: arr.id,
+				file_path	: arr.file_path,
+				file		: arr.file,
+				vip			: arr.vip,
+				bitrate		: arr.bitrate,
+				resolution	: arr.resolution,
+			},
+			dataType: 'text',
+			timeout: 1000,
+			cache: false,
+			async: true,
+			//success: function(data){$('#command').append('<br>' + data);},
+		});
+	}catch(err){
+		if(curr_request) curr_request.abort();
+	}
+}
+function video_state_get(id){
+	var obj = '';
+	$.ajax({
+		url: '__URL__-video_state_get',
+		type: 'POST',
+		data: {
+			id		: id,
+		},
+		dataType: 'text',
+		timeout: 10000,
+		cache: false,
+		async: false,
+		success: function (data){
+			obj = JSON.parse(data);
+		},
+	});
+	return obj;
+}
+function video_set_ok(id){
+	$.ajax({
+		url: '__URL__-video_set_ok',
+		type: 'POST',
+		data: {
+			id		: id,
+		},
+		dataType: 'text',
+		timeout: 10000,
+		cache: false,
+		async: false,
+		success: function (data){},
+	});
+}
+
+function do_work(){
+	video_state_check();
+	if('O' == video_state) return;
+	
+	var video_state_arr = '';
+	for(var i = 0; i < video_thread.length; i++){
+		if(video_thread[i]['state']  == '') continue;
+		var arr = video_thread[i]['arr'];
+		video_state_arr += arr.id + ',';
+	}
+	video_state_arr = video_state_get(video_state_arr.substr(0, video_state_arr.length-1));
+	
+	var now = new Date().getTime();
+	var time_missing = '';
+	for(var i = 0; i < video_thread.length; i++){
+		if(video_thread[i]['state']  == '') continue;
+		var arr = video_thread[i]['arr'];
+		
+		if(arr.state == 'L'){
+			for(var j = 0; j < video_state_arr.length; j++){
+				var video_state_item = video_state_arr[j];
+				if(video_state_item.id == arr.id){
+					if(video_state_item.play == 'T' || video_state_item.play == 'E'){
+						arr.state = 'T';
+						if(video_state_item.play == 'T') $('#video_state_' + arr.id).attr('src', video_img_finish);
+						if(video_state_item.play == 'E') $('#video_state_' + arr.id).attr('src', video_img_error);
+						video_thread[i]['state'] = '';
+						video_progress++;
+						video_list_for_work();
+					}
+					if(arr.file_count != video_state_item.count){
+						arr.file_count = video_state_item.count;
+						arr.time_die = now;
+					}
+					time_missing = time_second(now - arr.time_die);
+					if(arr.file_count == video_state_item.count){
+						if(time_missing > <{:get_video_set()['video_timeout']}>) video_set_ok(arr.id);
+					}
+					$('#video_file_count_' + arr.id).html(video_state_item.count + ' (' + time_missing + ')');
+				}
+			}
+			$('#video_use_time_' + arr.id).html(show_time(now - arr.time));
+		}
+		if(arr.state == 'R'){
+			arr.time = new Date().getTime();
+			arr.state = 'L';
+			$('#video_state_' + arr.id).attr('src', video_img_loading);
+			video_recode_start(arr);
+		}
+	}
+	setTimeout("do_work()", 1000);
+}
+
+function init(){
+	start_time = new Date().getTime();
+	video_state_set('L');
+	video_list_for_work();
+	do_work();
+}
+</script>

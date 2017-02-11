@@ -1,0 +1,93 @@
+<script>
+function title_tools(id){
+	var input = $("#title_tools");
+	if(input.css('display') == 'none') input.css('display', 'block');
+	else input.css('display', 'none');
+	if(id != 'close'){
+		file = $('#batch_' + id).val();
+		var file_title = file.split('.');
+		var file_type = file_title[1];
+		var set = file_title[0].split('-');
+		var title = sort_title = tab_title = uid = "";
+		if(set.length==3 && file_title.length==2){
+			title = "<input type='text' id='name' value='" + set[0] + "' /><input type='hidden' name='name'/><input type='hidden' name='name_o' value='" + file + "'/>";
+			tab_item = set[1].split(',');
+			for(var j=0;j<sort_arr.length;j++){
+				select_is = "";
+				for(var k=0;k<tab_item.length;k++){
+					if(sort_arr[j].id == tab_item[k]){select_is = "checked='checked'";break;}
+				}
+				sort_title += "<input type='checkbox' name='sort_num[]' value='" + sort_arr[j].id + "' " + select_is + " />" + sort_arr[j].name;
+			}
+			for(var j=0;j<tab_arr.length;j++){
+				select_is = "";
+				for(var k=0;k<tab_item.length;k++){
+					if(tab_arr[j].id == tab_item[k]){select_is = "checked='checked'";break;}
+				}
+				tab_title += "<input type='checkbox' name='tab_num[]' value='" + tab_arr[j].id + "' " + select_is + " />" + tab_arr[j].name;
+			}
+			
+			uid = "<input type='text' name='title_uid' value='" + set[2] + "'/>";
+			
+		} else {
+			title = "<input type='text' id='name' value='" + set[0] + "' /><input type='hidden' name='name'/><input type='hidden' name='name_o' value='" + file + "'/>";
+			if(set[1] == null) uid = "<input type='text' name='title_uid' value='1'/>";
+			else uid = "<input type='text' name='title_uid' value='" + set[1] + "'/>";
+			for(var j=0;j<sort_arr.length;j++){
+				sort_title += "<input type='checkbox' name='sort_num[]' value='" + sort_arr[j].id + "'/>" + sort_arr[j].name;
+			}
+			for(var j=0;j<tab_arr.length;j++){
+				tab_title += "<input type='checkbox' name='tab_num[]' value='" + tab_arr[j].id + "'/>" + tab_arr[j].name;
+			}
+		}
+		$('#title_name').html(file);
+		$("#title").html(title);
+		$("#title_sort").html(sort_title);
+		$("#title_tab").html(tab_title);
+		$("#title_uid").html(uid);
+		$("input[name='file_type']").val(file_type);
+	}
+}
+function rename(){
+	str_val = "";
+	var code_Values = document.getElementsByName("sort_num[]"); 
+	for(i = 0;i < code_Values.length;i++){ 
+		if(code_Values[i].type == "checkbox") {
+			if(code_Values[i].checked) {
+				str_val += code_Values[i].value + ",";
+			}
+		} 
+	}
+	code_Values = document.getElementsByName("tab_num[]"); 
+	for(i = 0;i < code_Values.length;i++){
+		if(code_Values[i].type == "checkbox") {
+			if(code_Values[i].checked) str_val += code_Values[i].value + ",";
+		} 
+	}
+	str_val = str_val.substr(0, str_val.length-1);
+	
+	var name = $('#name').val();
+	if(name.indexOf('-') > 0 || name.indexOf('.') > 0){
+		alert('不能包含"-."等字符');
+		return;
+	}
+	
+	var uid = $("input[name='title_uid']").val();
+	var reg = new RegExp("^[0-9]*$");
+    if(!reg.test(uid)){
+        alert("请输入数字!");
+		return;
+    }
+	
+	var file_type = $("input[name='file_type']").val();
+	if(file_type.indexOf('-') > 0 || file_type.indexOf('.') > 0){
+		alert('不能包含"-."等字符');
+		return;
+	}
+	
+	var title = name + "-" + str_val + "-" + uid + "." + file_type;
+	$("input[name='name']").val(title);
+	$('#process').val('rename');
+	submit_admin();
+}
+</script>

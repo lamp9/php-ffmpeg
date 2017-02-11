@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>640x360-码率500K</title>
+</head>
+<?php
+//var_dump($v);
+$video_dir = get_video_dir();
+$path = ($v['vip'] == 'T') ? $video_dir['vip'] : $video_dir['base'];
+//echo "play:".$path.$v['dir'].'/'.$v['id'].'/'.$v['play_file'];
+$play = $path.$v['dir'].'/'.$v['id'].'/'.$v['play_file'];
+$player_dir = '__PUBLIC__/js/ckplayer/';
+?>
+<body>
+<div id="a1"></div>
+<script type="text/javascript" src="<{$player_dir}>ckplayer.js" charset="utf-8"></script>
+<script type="text/javascript">
+    var flashvars={
+        f:'<{$player_dir}>m3u8.swf',
+        a:'<{$play}>',
+        s:4,
+		v:100,
+        c:0
+    };
+    var params={bgcolor:'#FFF',allowFullScreen:true,allowScriptAccess:'always',wmode:'transparent'};
+    var video=['<{$play}>'];
+    CKobject.embed('<{$player_dir}>ckplayer.swf','a1','ckplayer_a1','818','491',false,flashvars,video,params);
+</script>
+</body>
+</html>

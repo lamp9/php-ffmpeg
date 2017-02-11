@@ -1,0 +1,70 @@
+<include file="Public:head_inner" />
+<!-- left -->
+<div class="xt-center">
+	<div id="xt-left">
+		<div class="xt-menu">
+			<ul>
+				<li><a href="__APP__" class="hover"><em class="one"></em>视频入库</a></li>
+				<div class="xt-menu-jj"></div>
+				<li><a href="__APP__/Video"><em class="three"></em>视频</a></li>
+			</ul>
+			<div class="xt-menu-list" style="padding:20px 0px;"><ul><?php $video_websize = get_video_websize();?>
+				<foreach name='video_websize' item='vw'>
+				<li><a href="__APP__/Video-video_websize-table-<{$vw.table}>" <if condition='$table eq $vw["table"]'> class="hover"</if>><em class="one"></em><{$vw.name}></a></li>
+				<div class="xt-menu-jj"></div>
+				</foreach>
+			</ul></div>
+			<ul><li><a href="/Public/js/index/ZeroClipboard/title_tools.php"><em class="two"></em>整理工具</a></li></ul>
+		</div>
+	</div>
+<!-- right -->
+	<div id="xt-right">
+		<div class="xt-bt">视频管理 > 视频入库</div>
+		<div class="xt-fenye">
+			<div class="xt-fenye-left"><input type="text" onblur="data_search_fun(this.value);" class="int-text" /></div>
+			<div class="xt-fenye-right"><ul id="data_type" style="float: left;"></ul></div>
+			<div class="xt-fenye-right" style=" margin-right:10px;">
+			<ul style="float: left;margin-right:10px;"><li><a href="javascript:data_type_go('data_all');set_pagesize(10);output_dir(1);">还原</a><a href="javascript:location.href='/';">刷新</a></li><li id="total_info"></li></ul>
+			<ul id="pagination_button" style="float: left;"></ul>
+			</div>
+		</div> 
+		<div class="xt-table">
+			<form method="post" id="admin" action="__URL__-process">
+				<input type="hidden" name="path" value="<?php echo session('path');?>"/>
+				<input type="hidden" name="process" id="process"/>
+			<table cellpadding="0" cellspacing="0" border="0" bgcolor="#dcdcdc" width="100%" style="font-size:14px">
+				<tr align="left">
+					<th width="40">　&nbsp;<input type="checkbox" onClick="checkAll()" /></th>
+					<th>用户ID</th>
+					<th>视频名称</th>
+					<th width="200">视频分类</th>
+					<th width="200">视频标签</th>
+					<th width="110"><button type='button' class="mingming" onclick='javascript:output_dir("auto");'>刷　新</button></th>
+					<th width="90">视频类型</th>
+					<th width="100">视频大小</th>
+					<th width="100">操作</th>
+				</tr>
+				<tbody id="show_dir"></tbody>
+			</table>
+			<!--tools-->
+			<div id="title_tools" class="tools">
+			<div class="tools-header">&nbsp;&nbsp;文件：[ <span id="title_name"></span> ]</div>
+			<div class="tools-body">
+				标题：<div id="title"></div>
+				分类：<div id="title_sort"></div>
+				标签：<div id="title_tab"></div>
+				UID：<div id="title_uid"></div>
+				文件类型：<div><input type="text" name="file_type"/></div>
+			</div>
+			<div class="tools-footer"><a href="javascript:title_tools('close');" class="mingming">取 消</a><a href="javascript:rename();" class="mingming">确 认</a></div>
+			</div>
+			<!--tools end-->
+		</form>
+	</div>
+<div class="xt-fenye" id="page_button"></div>
+</div>
+</div>
+<include file="index_tools"/>
+<include file="index_com"/>
+</body>
+</html>

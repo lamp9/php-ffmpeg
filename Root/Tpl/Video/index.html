@@ -1,0 +1,153 @@
+<include file="Public:head_inner" />
+<!-- left -->
+<div class="xt-center">
+	<div id="xt-left">
+		<div class="xt-menu">
+			<ul>
+				<li><a href="__APP__"><em class="one"></em>视频入库</a></li>
+				<div class="xt-menu-jj"></div>
+				<li><a href="__APP__/Video" class="hover"><em class="three"></em>视频</a></li>
+			</ul>
+			<div class="xt-menu-list" style="padding:20px 0px;"><ul><?php $video_websize = get_video_websize();?>
+				<foreach name='video_websize' item='vw'>
+				<li><a href="__APP__/Video-video_websize-table-<{$vw.table}>" <if condition='$table eq $vw["table"]'> class="hover"</if>><em class="one"></em><{$vw.name}></a></li>
+				<div class="xt-menu-jj"></div>
+				</foreach>
+			</ul></div>
+		</div>
+	</div>
+<!-- right -->
+	<div id="xt-right">
+    <div class="xt-bt">视频管理 > 用户上传</div>
+     <div class="xt-input">
+		<a href="javascript:$('#process').val('video_get_vl');submit_admin();" class="green-int">获取时长</a>&nbsp;&nbsp;
+		<a href="javascript:$('#process').val('video_get_img');submit_admin();" class="green-int">生成图片</a>&nbsp;&nbsp;
+		<a href="javascript:$('#process').val('video_get_recode');submit_admin();" class="yellow-int">转 码</a>&nbsp;&nbsp;
+		<a onclick="javascript:$('#process').val('delete');submit_admin();" id="batch_del" class="red-int">批量删除</a>&nbsp;&nbsp;
+		<a onclick="javascript:location.reload();" class="green-int">刷新</a>
+		<div class="xt-fenye-right" style="margin-top:-5px;"><input type="text" style="width: 100px;" placeholder="搜索" onblur="data_search_fun(this.value);" value="<{$search}>" class="int-text" /></div>
+    </div>
+    <div class="xt-table">
+	<form method="post" id="admin" action="__URL__-process">
+			<input type="hidden" name="process" id="process"/>
+        <table cellpadding="0" cellspacing="0" border="0" bgcolor="#dcdcdc" width="100%" style="font-size:14px">
+         <tr align="left">
+            <th width="50">　&nbsp;<input type="checkbox" onClick="checkAll()"/></th>
+			<th width="70"><a href="__URL__">ID</a></th>
+            <th width="70">UID</th>
+            <th>分类</th>
+			<th>标签</th>
+            <th>视频名称</th>
+			<th width="125">路径</th>
+			<th width="90">播放(
+			<a href="__URL__-index-field-play-val-F">未</a>
+			<a href="__URL__-index-field-play-val-E">错</a> )
+			</th>
+			<th width="100">时长(
+			<a href="__URL__-index-field-vl-val-F">未</a>
+			<a href="__URL__-index-field-vl-val-E">错</a> )
+			</th>
+			<th width="90">分辨</th>
+			<th width="50">码率</th>
+			<th width="100">图(
+			<a href="__URL__-index-field-img-val-F">未</a>
+			<a href="__URL__-index-field-img-val-T">已</a>
+			<a href="__URL__-index-field-img-val-OK">OK</a> )
+			</th>
+			<th width="90">创建时间</th>
+			<th width="50"><a href="__URL__-index-field-vip">VIP</a></th>
+            <th width="100">处理</th>
+         </tr>
+         <tbody id="show_dir">
+			<foreach name='list' item='v'>
+			<tr>
+                <td>　&nbsp;<input type='checkbox' name='batch[]' id="video_<{$v.id}>" value="<{$v.id}>"/></td>
+				<td><{$v.id}></td>
+                <td><{$v.uid}></td>
+                <td id="td_sort_<{$v.id}>" data="<{$v.id}>" cat="<{$v.cat}>" title="">
+				<script>$(function(){write_sort_tab('<{$v.id}>', '<{$v.cat}>');});</script>
+				</td>
+				<td id="td_tab_<{$v.id}>" title=""></td>
+                <td id="td_title_<{$v.id}>" data='<{$v.id}>' title="<{$v.title}>"><{$v.title}></td>
+				<td><{$v.dir}></td>
+				<td title="<{$v.dir}>/<{$v.id}>/<{$v.play_file}>">
+				<switch name="v.play">
+				<case value="F"><font color=#0F0>未转码</font></case>
+				<case value="T"><font color=#00F>完成</font></case>
+				<case value="E"><font color=#F00>错误</font></case>
+				<default />
+				</switch>
+				</td>
+				<td>
+				<switch name="v.vl">
+				<case value="F"><font color=#0F0>未获取</font></case>
+				<case value="E"><font color=#F00>错误</font></case>
+				<default /><font color=#00F><{$v.vl}></font>
+				</switch>
+				</td>
+				<td><{$v.resolution}></td>
+				<td><{$v.bitrate}></td>
+				<td onclick="javascript:get_img(<{$v.id}>);"
+					style="cursor:pointer;"
+					onmouseover="display_img(<{$v.id}>);"
+					onmouseout="display_img('close')">
+				<switch name="v.img">
+				<case value="F"><font color=#0F0>未生成</font></case>
+				<case value="T"><font color=#F0F>选封面</font></case>
+				<default /><font color=#00F>OK!</font>
+				</switch>
+				</td>
+				<td><{$v.time}></td>
+				<td>
+				<switch name="v.vip">
+				<case value="T"><font color=#F00>是</font></case>
+				<case value="F">否</case>
+				<default />否
+				</switch>
+				</td>
+                <td>
+				<a id="modify_<{$v.id}>" target="_blank" href="__URL__-video_play-id-<{$v.id}>" class="green-int">播</a>
+				<a id="modify_<{$v.id}>" href="javascript:title_tools('<{$v.id}>', '<{$v.cat}>', '<{$v.vip}>');" class="green-int">编</a>
+				<a href="javascript:$('#video_<{$v.id}>').attr('checked','true');$('#batch_del').click();" class="blue-xt">删</a>
+				</td>
+            </tr>
+			</foreach>
+		</tbody>
+        </table></form>
+    </div>
+    <div class="xt-fenye">
+
+        <div class="xt-fenye-right">
+            <ul><{$show}>
+	            <li><input type="text" name="text" /></li>
+	            <li><a href="#">跳转</a></li>
+            </ul>
+        </div>
+    </div>
+	<div class="xt-fenye">
+		<div class="xt-fenye-right"><ul>
+			<li><a href="javascript:ajax_set_session('video_order', 'desc');location.reload(true);">降</a></li>
+			<li><a href="javascript:ajax_set_session('video_order', 'asc');location.reload(true);">升</a></li>
+			<li><a href="javascript:ajax_set_session('video_page_size', 10);location.reload(true);">10</a></li>
+			<li><a href="javascript:ajax_set_session('video_page_size', 20);location.reload(true);">20</a></li>
+			<li><a href="javascript:ajax_set_session('video_page_size', 40);location.reload(true);">40</a></li>
+			<li><a href="javascript:ajax_set_session('video_page_size', 100);location.reload(true);">100</a></li>
+			<li><a href="javascript:ajax_set_session('video_page_size', 200);location.reload(true);">200</a></li>
+		</ul></div>
+	</div>
+</div>
+</div>
+<style>.xt-fenye-right li.active a{background: #21b6b4;border: none;}
+.xt-fenye-right input {
+	margin-left:5px;
+	background: #f8f8f8;
+	border: 1px solid #dcdcdc;
+	padding: 6.5px 15px;
+	color: #666;
+	text-decoration: none;
+}
+</style>
+<include file="video_img_com"/>
+<include file="index_com"/>
+</body>
+</html>

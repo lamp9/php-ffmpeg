@@ -1,0 +1,157 @@
+<!--tools-->
+<div id="title_tools" class="tools">
+<div class="tools-header">&nbsp;&nbsp;文件：[ <span id="title_name"></span> ]</div>
+<div class="tools-body">
+	标题：<div id="title"></div>
+	分类：<div id="title_sort"></div>
+	标签：<div id="title_tab"></div>
+	VIP：<div id="is_vip"></div>
+</div>
+<div class="tools-footer"><a href="javascript:title_tools('close');" class="mingming">取 消</a><a href="javascript:rename();" class="mingming">确 认</a></div>
+</div>
+<!--tools end-->
+<script>
+function ajax_set_session(key, val){
+	$.get(
+		'__URL__-ajax_set_session-key-' + key + "-val-" + val,
+		function(data){}
+	);
+}
+
+function ajax_video_modify(id, key, val){
+	$.post(
+		"__URL__-ajax_video_modify",
+		{
+			id		: id,
+			key		: key,
+			val		: val,
+		},
+		function (data){
+			//alert(data);
+		}
+	);
+}
+
+var sort_arr = <?php echo json_encode($sort_arr);?>;
+var tab_arr = <?php echo json_encode($tab_arr);?>;
+function return_sort_tab(tab_item){
+	var data = new Array();
+	var sort_title = tab_title = "";
+	
+	tab_item = tab_item.split(',');
+	for(var j=0;j<sort_arr.length;j++){
+		for(var k=0;k<tab_item.length;k++){
+			if(sort_arr[j].id == tab_item[k]) sort_title += sort_arr[j].name + " , ";
+		}
+		
+	}
+	data['sort'] = sort_title.substr(0, sort_title.length-3);
+	for(var j=0;j<tab_arr.length;j++){
+		for(var k=0;k<tab_item.length;k++){
+			if(tab_arr[j].id == tab_item[k]) tab_title += tab_arr[j].name + " , ";
+		}
+	}
+	data['tab'] = tab_title.substr(0, tab_title.length-3);
+	
+	return data;
+}
+function write_sort_tab(id, tab_item){
+	var data = return_sort_tab(tab_item);
+	$('#td_sort_'+id).attr("title", data['sort']);
+	$('#td_sort_'+id).html(data['sort']);
+	$('#td_tab_'+id).attr("title", data['tab']);
+	$('#td_tab_'+id).html(data['tab']);
+}
+
+function title_tools(id, tab_item, vip){
+	var input = $("#title_tools");
+	if(input.css('display') == 'none') input.css('display', 'block');
+	else input.css('display', 'none');
+	
+	if(id != 'close'){
+		var title = $('#td_title_' + id).html();
+		var title_field = "<input type='text' id='name' value='" + title + "' /><input type='hidden' id='id' value='" + id + "'>";
+		
+		var sort_title = tab_title = "";
+		tab_item = tab_item.split(',');
+		for(var j=0;j<sort_arr.length;j++){
+			select_is = "";
+			for(var k=0;k<tab_item.length;k++){
+				if(sort_arr[j].id == tab_item[k]){select_is = "checked='checked'";break;}
+			}
+			sort_title += "<input type='checkbox' name='sort_num[]' value='" + sort_arr[j].id + "' " + select_is + " />" + sort_arr[j].name;
+		}
+		for(var j=0;j<tab_arr.length;j++){
+			select_is = "";
+			for(var k=0;k<tab_item.length;k++){
+				if(tab_arr[j].id == tab_item[k]){select_is = "checked='checked'";break;}
+			}
+			tab_title += "<input type='checkbox' name='tab_num[]' value='" + tab_arr[j].id + "' " + select_is + " />" + tab_arr[j].name;
+		}
+		
+		var is_vip = '';
+		var is_vip_select = '';
+		if(vip == 'T') is_vip_select = ' checked="checked"';
+		is_vip = '<input type="radio" name="is_vip" value="T"' + is_vip_select + '>是';
+		is_vip_select = '';
+		if(vip == 'F') is_vip_select = ' checked="checked"';
+		is_vip += '<input type="radio" name="is_vip" value="F"' + is_vip_select + '>否';
+		
+		$('#title_name').html(title);
+		$("#title").html(title_field);
+		$("#title_sort").html(sort_title);
+		$("#title_tab").html(tab_title);
+		$("#is_vip").html(is_vip);
+	}
+}
+function rename(){
+	str_val = "";
+	var code_Values = document.getElementsByName("sort_num[]"); 
+	for(i = 0;i < code_Values.length;i++){ 
+		if(code_Values[i].type == "checkbox") {
+			if(code_Values[i].checked) {
+				str_val += code_Values[i].value + ",";
+			}
+		} 
+	}
+	code_Values = document.getElementsByName("tab_num[]"); 
+	for(i = 0;i < code_Values.length;i++){ 
+		if(code_Values[i].type == "checkbox") {
+			if(code_Values[i].checked) str_val += code_Values[i].value + ",";
+		} 
+	}
+	str_val = str_val.substr(0, str_val.length-1);
+	
+	var is_vip = $('input[name="is_vip"]:checked').val();
+	
+	var id = $('#id').val();
+	var title = $('#name').val();
+	/*ajax_video_modify(id, 'title', title);
+	ajax_video_modify(id, 'cat', str_val);
+	ajax_video_modify(id, 'vip', is_vip);*/
+	
+	$.post(
+		"__URL__-modify",
+		{
+			id		: id,
+			title	: title,
+			cat		: str_val,
+			vip		: is_vip,
+		},
+		function (data){
+			//alert(data);
+			location.reload();
+		}
+	);
+	
+	/*$('#td_title_' + id).html(title);
+	write_sort_tab(id, str_val);
+	
+	$('#modify_' + id).attr('onclick', "javascript:title_tools('" + id + "', '" + str_val + "', '" + is_vip + "');");
+	title_tools('close');*/
+}
+
+function data_search_fun(val){
+	location.href = '__URL__-index-search-' + val;
+}
+</script>

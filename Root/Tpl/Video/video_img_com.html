@@ -1,0 +1,161 @@
+<div id="img_display" class="tools">
+	<div class="tools-header">&nbsp;&nbsp;[ <span id='img_id_display'></span> ]</div>
+	<div class="tools-body"><br><div id="img_area_display"></div></div>
+</div>
+<script>
+function display_img(id){
+	var input = $("#img_display");
+	if(input.css('display') == 'none') input.css('display', 'block');
+	else input.css('display', 'none');
+	
+	if(id != 'close'){
+		$.post(
+			"__URL__-video_get_img_for_admin",
+			{
+				id		: id,
+			},
+			function (data){
+				var obj = JSON.parse(data);
+				var img_arr= new Array();
+				if(obj.set != null) img_arr=obj.set.split(',');
+				
+				var file = obj.file;
+				if(file != null){
+					var img_set = '';
+					for(var i = 0; i < file.length; i++){
+						var batch = file[i].batch;
+						
+						var img_radio = '';
+						if(batch == obj.face) img_radio = "<div class=img-face></div>";
+						var img_checkbox = '';
+						for(var j = 0; j < img_arr.length; j++){
+							if(batch == img_arr[j]) img_checkbox = "<div class=img-set></div>";
+						}
+						
+						img_set +=
+							"<div class=img_item>" +
+								"<div class=img_wrap>" + img_checkbox + img_radio + "<img width=100% src='" + obj.path + batch + "' onclick=img_set_checked(" + i + ") /></div>" +
+							"</div>";
+					}
+					$('#img_id_display').html("<font color=#f00><strong>" + obj.id + " : " + obj.title + "</strong></font>");
+					$('#img_area_display').html(img_set);
+				} else {
+					$('#img_id_display').html('&nbsp;');
+					$('#img_area_display').html('&nbsp;');
+				}
+			}
+		);
+	}
+}
+</script>
+
+
+<style>
+.img_item{float:left; width:160px; margin: 0 10px 10px 0;}
+.img_item .img_wrap{ width:100%; height:120px; margin:0; padding:0;}
+.img_item div{ text-align:center;}
+</style>
+<div id="img_tools" class="tools">
+	<div class="tools-header">&nbsp;&nbsp;[ <span id="img_id"></span> ]</div>
+	<div class="tools-body"><br><div id="img_area"></div></div>
+	<div class="tools-footer">
+		<a href="javascript:get_img('close');" class="mingming">取 消</a>
+		<a href="javascript:set_img();" class="mingming">确 认</a>
+	</div>
+</div>
+<script>
+function get_img(id){
+	var input = $("#img_tools");
+	if(input.css('display') == 'none') input.css('display', 'block');
+	else input.css('display', 'none');
+	
+	if(id != 'close'){
+		$.post(
+			"__URL__-video_get_img_for_admin",
+			{
+				id		: id,
+			},
+			function (data){
+				var obj = JSON.parse(data);
+				var img_arr= new Array();
+				if(obj.set != null) img_arr=obj.set.split(',');
+				
+				var file = obj.file;
+				if(file != null){
+					var img_set = '';
+					for(var i = 0; i < file.length; i++){
+						var batch = file[i].batch;
+						
+						var img_radio = '';
+						if(batch == obj.face) img_radio = "<div class=img-face></div>";
+						var img_checkbox = '';
+						for(var j = 0; j < img_arr.length; j++){
+							if(batch == img_arr[j]) img_checkbox = "<div class=img-set></div>";
+						}
+						
+						img_set +=
+							"<div class=img_item>" +
+								"<div class=img_wrap>" + img_checkbox + img_radio + "<img width=100% src='" + obj.path + batch + "' onclick=img_set_checked(" + i + ") /></div>" +
+								"<div>" +
+									"<input type=radio name=img_face value='" + batch + "'/>" +
+									"<input type=checkbox name=img_set[] id=img_set_" + i + " value='" + batch + "'/>" +
+								"</div>" +
+							"</div>";
+					}
+					$('#img_id').html("<font color=#f00><strong>" + obj.id + " : " + obj.title + "</strong></font>");
+					$('#img_area').html("<input type=hidden name=img_id value='" + obj.id + "' />" + img_set);
+				} else {
+					$('#img_id').html('&nbsp;');
+					$('#img_area').html('&nbsp;');
+				}
+			}
+		);
+	}
+}
+
+function img_set_checked(id){
+	var obj = document.getElementById('img_set_' + id);
+	if(obj.checked) obj.checked = false;
+	else obj.checked = true;
+}
+
+function set_img(){
+	var face = $('input[name="img_face"]:checked').val();
+	if(!face){
+		alert("没选择封面!"); return;
+	}
+	var str_val = '';
+	var code_Values = document.getElementsByName("img_set[]"); 
+	for(i = 0;i < code_Values.length;i++){ 
+		if(code_Values[i].type == "checkbox") {
+			if(code_Values[i].checked) {
+				str_val += code_Values[i].value + ",";
+			}
+		} 
+	}
+	str_val = str_val.substr(0, str_val.length-1);
+	str_val = str_val.replace(face + ',', '');
+	str_val = str_val.replace(',' + face, '');
+	
+	var img_all = face + ',' + str_val;
+	var img_arr= new Array();
+	img_arr=img_all.split(',');
+	var img_select_count = <{:get_video_set()['img_select_count']}>;
+	if(img_arr.length < img_select_count) {
+		alert('图片数量少于6张！');
+		return;
+	}
+	$.post(
+		"__URL__-video_set_img",
+		{
+			id		: $("input[name='img_id']").val(),
+			img		: 'OK|FACE:' + face + '|SET:' + str_val,
+			img_str	: face + ',' + str_val,
+		},
+		function (data){
+			if(data == 'T') location.reload();
+			if(data == 'F') alert('更新失败');
+		}
+	);
+}
+</script>

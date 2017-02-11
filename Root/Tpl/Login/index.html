@@ -1,0 +1,31 @@
+<include file="Public:head" />
+<body style="background-color: #D2E0F2;">
+<div style="width:402px; margin:0px auto; margin-top:300px;">
+	<div class="easyui-panel" title="" style="width:400px;">
+		<div style="padding:10px 40px 20px 40px">
+			<form method="post" action="__URL__-login">
+				<table cellpadding="5">
+					<tr>
+						<td>用户名:</td>
+						<td><input class="easyui-textbox" type="text" name="name" data-options="required:true"></input></td>
+					</tr>
+					<tr>
+						<td>密码:</td>
+						<td><input class="easyui-textbox" type="password" name="pwd" data-options="required:true"></input></td>
+					</tr>
+					<tr>
+						<td>验证码:</td>
+						<td><input class="easyui-textbox" type="text" name="code"></input></td>
+						<td><img style="margin-left:-2px;" src='__URL__-verify' onclick='this.src=this.src+"?"+Math.random()' /></td>
+					</tr>
+					<tr>
+						<td></td>
+						<td><input type="submit" style="width:151px;" class="easyui-linkbutton" value="登录"></td>
+					</tr>
+				</table>
+			</form>
+		</div>
+	</div>
+</div>
+</body>
+</html>

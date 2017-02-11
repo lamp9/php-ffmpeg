@@ -1,0 +1,12 @@
+#
+# robots.txt for Discuz! X3
+#
+
+User-agent: *
+Disallow: /Public/
+Disallow: /Root/
+Disallow: /ThinkPHP/
+Disallow: /uploads/
+Disallow: /config.php
+Disallow: /index.php
+Disallow: /ppt.asp

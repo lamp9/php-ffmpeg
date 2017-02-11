@@ -1,0 +1,27 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>auto</title>
+<link href="__PUBLIC__/css/style.css" rel="stylesheet" type="text/css">
+<script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
+<script src="__PUBLIC__/js/root/select_id.js"></script>
+</head>
+<script>
+function windowHeight() {
+	var de = document.documentElement;
+	return self.innerHeight||(de && de.clientHeight)||document.body.clientHeight;
+}
+window.onload=window.onresize=function(){
+	var wh=windowHeight();
+	document.getElementById("xt-left").style.height = document.getElementById("xt-right").style.height = (wh-document.getElementById("xt-top").offsetHeight)+"px";
+}
+</script>
+<body>
+<!-- top -->
+<div id="xt-top">
+	<div class="xt-logo">PHP-FFMPEG视频转码系统</div>
+	<div class="xt-geren">
+<div class="xt-exit"><span class="xt-span">您好! 管理员，欢迎PHP-FFMPEG登录管理中心</span><a href="#" class="help">帮助</a> <a href="__APP__/Login-logout" class="exit">退出(<?php echo session('id').':'.session('name');?>)</a></div>
+	</div>
+</div>

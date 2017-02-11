@@ -1,0 +1,262 @@
+<form id="jump" method="post" action="__APP__/Index-jump">
+	<input type="hidden" id="path" name="path"/>
+</form>
+<form id="jump_move" method="post" action="__APP__/Index-jump_move">
+	<input type="hidden" name="path" value="<?php echo session('path');?>"/>
+	<input type="hidden" id="jump_move_on" name="continue" value="T"/>
+</form>
+<form id="jump_dir" method="post" action="__APP__/Index-jump_dir">
+	<input type="hidden" name="path" value="<?php echo session('path');?>"/>
+	<input type="hidden" id="dir" name="dir"/>
+</form>
+<script>
+function jump(path) {
+	$('#path').val(path);
+	$("#jump").submit();
+}
+function jump_move(is) {
+	if(!is) $('#jump_move_on').val('F');
+	$("#jump_move").submit();
+}
+function jump_dir(dir) {
+	$('#dir').val(dir);
+	$("#jump_dir").submit();
+}
+
+function return_file_type(file, size){
+	var file_title = file.split('.');
+	var file_type;
+	var set = file_title[0].split('-');
+	var title = sort_title = tab_title = uid = state = "";
+	if(set.length==3 && file_title.length==2){
+		file_type = file_title[1];
+		title = set[0];
+		tab_item = set[1].split(',');
+		for(var j=0;j<sort_arr.length;j++){
+			for(var k=0;k<tab_item.length;k++){
+				if(sort_arr[j].id == tab_item[k]) sort_title += sort_arr[j].name + " , ";
+			}
+			
+		}
+		sort_title = sort_title.substr(0, sort_title.length-3);
+		for(var j=0;j<tab_arr.length;j++){
+			for(var k=0;k<tab_item.length;k++){
+				if(tab_arr[j].id == tab_item[k]) tab_title += tab_arr[j].name + " , ";
+			}
+		}
+		tab_title = tab_title.substr(0, tab_title.length-3);
+		uid = set[2];
+		state = '1';
+	} else {
+		file_type = title = sort_title = tab_title = "<font class=red>ERROR</font>";
+		uid = '0';
+		state = '2';
+	}
+	var file_data = new Array();
+	file_data['name'] = file;
+	file_data['title'] = title;
+	file_data['sort'] = sort_title;
+	file_data['tab'] = tab_title;
+	file_data['uid'] = uid;
+	file_data['state'] = state;
+	file_data['file_type'] = file_type;
+	file_data['size'] = size;
+	return file_data;
+}
+
+var data = <?php echo json_encode($list);?>;
+var sort_arr = <?php echo json_encode($sort_arr);?>;
+var tab_arr = <?php echo json_encode($tab_arr);?>;
+var data_all = new Array();
+var data_true = new Array();
+var data_error = new Array();
+var data_current = new Array();
+var data_search = new Array();
+var num_true = num_false = num_error = 0;
+for(var i = 0; i < data.length; i++){
+	data_all[i] = return_file_type(data[i].batch, data[i].size);
+	switch(data_all[i]['state']){
+		case '1':
+			data_true[num_true++] = data_all[i];
+			break;
+		case '2':
+			data_error[num_error++] = data_all[i];
+			break;
+		default:;
+	}
+}
+
+var str = '';
+var data_type = '<?php if(session('data_type') == '') session('data_type', 'data_all'); echo session('data_type');?>';
+var total_num = <{$list|count}>;
+var page_size = '<?php if(session('page_size') == '') session('page_size', 20); echo session('page_size');?>';
+var current_page = <?php if(session('current_page') == '') session('current_page', 1); echo session('current_page');?>;
+var total_page = 1;
+
+function page_init(){
+	if(page_size == 'ALL') return;
+	total_page = parseInt(total_num / page_size);
+	if(total_num % page_size != 0) total_page += 1;
+	if(total_num < page_size) total_page = 1;
+}
+
+function output_dir(page){
+	if(data == null) return;
+	if(page != 'auto'){
+		if(page == 'prev') page = current_page - 1;
+		if(page == 'next') page = current_page + 1;
+		if(page <= 0) page = 1;
+		if(page >= total_page) page = total_page;
+		current_page = page;
+	} else page = current_page;
+	ajax_set_session('current_page', page);
+	$('#current_page').val(current_page);
+	if(page_size == 'ALL'){
+		nums = total_num;
+		num = 0;
+	} else {
+		nums = page * page_size;
+		num = nums - page_size;
+	}
+	for (var i = num; i < nums; i++){
+		if(i >= total_num) continue;
+		if(i % 2 == 0) type = "class='xt-bg'";
+		else type = "";
+		var data_item = data_current[i];
+		str += "<tr " + type + ">" +
+			"<td>　&nbsp;<input type='checkbox' id='batch_" + i + "' name='batch[]' value='" + data_item['name'] + "'/></td>" +
+			"<td title='" + data_item['uid'] + "'>" + data_item['uid'] + "</td>" +
+			"<td title='" + data_item['title'] + "'>" + data_item['title'] + "</td>" +
+			"<td title='" + data_item['sort'] + "'>" + data_item['sort'] + "</td>" +
+			"<td title='" + data_item['tab'] + "'>" + data_item['tab'] + "</td>" +
+			"<td title='" + data_item['name'] + "'><button type='button' class='mingming' onclick='javascript:title_tools(" + i + ");'>重命名</button></td>" +
+			"<td>" + data_item['file_type'] + "</td>" +
+			"<td>" + data_item['size'] + "</td>" +
+			"<td>" +
+			"<!--<a class='yellow-int' href=\"javascript:to_code('" + data_item['name'] + "');\">转</a>-->" +
+			"<a class='blue-xt' href=\"javascript:$('#batch_" + i + "').attr('checked','true');$('#batch_in').click();\">入</a>" +
+			"<a class='red-int' href=\"javascript:$('#batch_" + i + "').attr('checked','true');$('#batch_del').click();\">删</a>" +
+			"</td>" +
+			"</tr>";
+	}
+	$('#show_dir').html(str);
+	str = '';
+	output_page_button();
+}
+
+function output_pagination_button(){
+	var page_arr=[10, 20, 40, "ALL"];
+	var page_str="";
+	for(i=0; i<page_arr.length; i++){
+		if(page_arr[i] == page_size) type = "class='active'"; else type = '';
+		page_str += "<li><a " + type + " href=\"javascript:set_pagesize('" + page_arr[i] + "');\">" + page_arr[i] + "</a></li>";
+	}
+	$('#pagination_button').html("<li><a href=\"#\">条数<span id=\"page_size\">" + page_size + "</span></a></li>" + page_str);
+}
+
+
+function output_page_button(){
+	str = "<div class=xt-fenye-left><input type=\"checkbox\" onClick=\"checkAll()\" style=\"margin-right: 10px;\" /><!--<input type='button' value='转　码' class='yellow-int' />--><input type='button' value='入　库' id='batch_in' onclick=\"if(confirm('确定要将文件录入数据库吗？')){$('#process').val('in');submit_admin();}\" class='blue-xt' /><input type='button' value='删　除' id='batch_del'  onclick=\"if(confirm('确定要删除数据吗？')){$('#process').val('del');submit_admin();}\" class='red-int' /></div>";
+	if(page_size != 'ALL'){
+		total_info = "<a>当前第 " + current_page + " / " + total_page + " 页 共" + total_num + "条记录</a>";
+		str += "<div class=xt-fenye-right>" +
+		"<div style=\"float: left;\">" + total_info + "<a href='javascript:output_dir(1)'>首页</a><a href='javascript:output_dir(\"prev\")'>上一页</a><a href='javascript:output_dir(\"next\")'>下一页</a><a href='javascript:output_dir(" + total_page + ")'>尾页</a>";
+		var page_scope = 3;
+		var page_center = current_page;
+		var page_start = 0;
+		if(page_center - page_scope >= 1){
+			page_start = page_center - page_scope;
+			for(i = 0; i < page_scope; i++){
+				str += "<a  href='javascript:output_dir(" + page_start + ")'>" + page_start + "</a>";
+				page_start++;
+			}
+		} else {
+			for(i = 1; i < page_center; i++) str += "<a  href='javascript:output_dir(" + i + ")'>" + i + "</a>";
+		}
+		str += "<a  href='javascript:output_dir(" + page_center + ")' class='active'>" + page_center + "</a>";
+		page_start = page_center + 1;
+		if(page_center + page_scope <= total_page){
+			for(i = 0; i < page_scope; i++){
+				str += "<a  href='javascript:output_dir(" + page_start + ")'>" + page_start + "</a>";
+				page_start++;
+			}
+		} else {
+			for(i = page_start; i <= total_page; i++) str += "<a  href='javascript:output_dir(" + i + ")'>" + i + "</a>";
+		}
+	} else {total_info = "<a>" + total_num + "条记录</a>";}
+	$('#total_info').html(total_info);
+	$('#page_button').html(str);
+	str = '';
+}
+
+function set_pagesize(size){
+	page_size = size;
+	$('#page_size').html(page_size);
+	page_init();
+	output_dir(current_page);
+	ajax_set_session('page_size', page_size);
+	output_pagination_button();
+}
+
+function ajax_set_session(key, val){
+	$.get(
+		'__URL__-ajax_set_session-key-' + key + "-val-" + val,
+		function(data){}
+	);
+}
+
+var data_type_arr = new Array();
+var data_type_str = '';
+data_type_arr[0] = new Array('data_all', '全部');
+data_type_arr[1] = new Array('data_true', '正常');
+data_type_arr[2] = new Array('data_error', '错误');
+function data_type_go(type){
+	data_type = type;
+	data_type_str = '';
+	var class_type = '';
+	for(var i = 0; i < data_type_arr.length; i++){
+		if(type == data_type_arr[i][0]) class_type = "class='active'";
+		else class_type = '';
+		data_type_str += "<li><a " + class_type + " href='javascript:data_type_go(\"" + data_type_arr[i][0] + "\");'>" + data_type_arr[i][1] + "</a></li>";
+	}
+	$('#data_type').html(data_type_str);
+	switch(data_type){
+		case 'data_all':
+			data_current = data_all;
+			break;
+		case 'data_true':
+			data_current = data_true;
+			break;
+		case 'data_error':
+			data_current = data_error;
+			break;
+		default: data_current = data_all;
+			
+	}
+	if(data == null) return;
+	else total_num = data_current.length;
+	page_init();
+	output_dir(current_page);
+	output_page_button();
+	ajax_set_session('data_type', type);
+}
+
+function data_search_fun(v){
+	data_search = new Array();
+	var num = 0;
+	for(i = 0; i < data_all.length; i++){
+		if(data_all[i]['name'].indexOf(v) != -1){
+			data_search[num++] = data_all[i];
+		}
+	}
+	data_current = data_search;
+	total_num = data_current.length;
+	
+	page_init();
+	output_dir(current_page);
+	output_page_button();
+}
+
+output_pagination_button();
+data_type_go(data_type);
+</script>
